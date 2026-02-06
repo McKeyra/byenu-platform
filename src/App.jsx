@@ -5,6 +5,7 @@ import Home from './pages/Home.jsx'
 import WizardSelector from './pages/WizardSelector.jsx'
 import QuickWizard from './pages/wizard/QuickWizard.jsx'
 import FullWizard from './pages/wizard/FullWizard.jsx'
+import FormWizard from './pages/wizard/FormWizard.jsx'
 import AIWizard from './pages/wizard/AIWizard.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Claim from './pages/Claim.jsx'
@@ -26,6 +27,7 @@ function App() {
         <Route path="/wizard-selector" element={<WizardSelector />} />
         <Route path="/wizard/quick" element={<QuickWizard />} />
         <Route path="/wizard/full" element={<FullWizard />} />
+        <Route path="/wizard/form" element={<FormWizard />} />
         <Route path="/wizard/ai" element={<AIWizard />} />
         <Route path="/wizard/success" element={<WizardSuccess />} />
         <Route path="/dashboard" element={<Dashboard />} />

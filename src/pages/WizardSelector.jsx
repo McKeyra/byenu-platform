@@ -203,17 +203,17 @@ export default function WizardSelector() {
                 </div>
               </Link>
 
-              {/* Full Business Wizard */}
-              <Link to="/wizard/full" className="wizard-card">
+              {/* Form Mode Wizard */}
+              <Link to="/wizard/form" className="wizard-card">
                 <div className="wizard-card-icon" style={{ background: `${C.gold}18`, color: C.gold }}>
                   <Layers size={28} />
                 </div>
-                <h3>Full Business Wizard</h3>
+                <h3>Form Mode</h3>
                 <p>
-                  17 steps, comprehensive. Complete business breakdown with all details.
+                  Fill out all fields at once with live preview. Complete control.
                 </p>
                 <div className="wizard-card-footer">
-                  Start Full
+                  Start Form
                   <ArrowRight size={16} />
                 </div>
               </Link>
