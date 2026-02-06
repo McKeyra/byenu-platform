@@ -1,11 +1,33 @@
-import { useState, useEffect, useRef, useCallback } from "react"
-import { useNavigate } from 'react-router-dom'
-import { createSubmission } from '../../api/submissions.js'
-import { generateReport } from '../../api/reports.js'
-import { useAuth } from '../../lib/auth/AuthContext.jsx'
-import { useBuild } from '../../context/BuildContext.jsx'
-import PageLayout from '../../components/layout/PageLayout.jsx'
-import { C } from '../../theme/constants.js'
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useBuild } from "../../context/BuildContext.jsx";
+import { createSubmission } from "../../api/submissions.js";
+import { generateReport } from "../../api/reports.js";
+import { useAuth } from "../../lib/auth/AuthContext.jsx";
+
+// ─── 22C-CORP PALETTE ───
+const C = {
+  mint: "#1A7A6D",
+  mintLight: "#2EC4B6",
+  mintGlow: "rgba(26,122,109,0.10)",
+  mintBorder: "rgba(26,122,109,0.25)",
+  gold: "#D4A843",
+  goldLight: "#F5E6C4",
+  goldGlow: "rgba(212,168,67,0.10)",
+  coral: "#E8756D",
+  coralGlow: "rgba(232,117,109,0.10)",
+  cream: "#FAFAF5",
+  white: "#FFFFFF",
+  charcoal: "#1A1A2E",
+  gray: "#6B7280",
+  grayLight: "#9CA3AF",
+  grayPale: "#D1D5DB",
+  border: "#E8E8E0",
+  success: "#22C55E",
+  successGlow: "rgba(34,197,94,0.10)",
+  error: "#EF4444",
+  errorGlow: "rgba(239,68,68,0.08)",
+};
 
 // ─── ICONS ───
 const Icon = {
@@ -29,26 +51,26 @@ const Icon = {
   ArrowRight: ({ size = 16 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
   Refresh: ({ size = 16 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
   Info: ({ size = 14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
-}
+};
 
-// ─── CONSTANTS ───
+// ─── INDUSTRIES ───
 const INDUSTRIES = [
   "Restaurant & Food", "Health & Fitness", "Professional Services",
   "Retail & E-commerce", "Real Estate", "Creative & Design",
   "Education & Coaching", "Technology", "Non-profit",
   "Events & Entertainment", "Construction & Trades", "Beauty & Wellness",
-]
+];
 
 const BUSINESS_TYPES = [
   "Solo / Freelancer", "Small Business (2-10)", "Growing Team (11-50)",
   "Agency / Studio", "Enterprise", "Non-profit / Community",
-]
+];
 
 const PAGE_OPTIONS = [
   "Home", "About", "Services", "Pricing", "Contact",
   "Blog", "Portfolio", "Testimonials", "FAQ", "Shop",
   "Booking", "Team", "Gallery", "Events", "Careers",
-]
+];
 
 const FEATURE_OPTIONS = [
   { label: "Contact Form", desc: "Collect inquiries with smart routing" },
@@ -63,13 +85,13 @@ const FEATURE_OPTIONS = [
   { label: "Maps", desc: "Show your location(s)" },
   { label: "Reviews", desc: "Display customer testimonials" },
   { label: "Members Area", desc: "Gated content for subscribers" },
-]
+];
 
 const TONE_OPTIONS = [
   "Calm", "Energetic", "Professional", "Playful", "Bold",
   "Minimal", "Warm", "Luxurious", "Natural", "Modern",
   "Friendly", "Edgy", "Corporate", "Artistic", "Tech-forward",
-]
+];
 
 const STYLE_PRESETS = [
   { id: "nu-decide", label: "Let NU Decide", colors: [C.mint, C.mintLight, C.gold], desc: "AI selects the perfect palette" },
@@ -78,22 +100,23 @@ const STYLE_PRESETS = [
   { id: "warm-earth", label: "Warm & Earthy", colors: ["#D4A373", "#CCD5AE", "#FEFAE0"], desc: "Terracotta, cream, forest" },
   { id: "ocean", label: "Ocean Blues", colors: ["#023E8A", "#0077B6", "#48CAE4"], desc: "Professional depth, trustworthy" },
   { id: "sunset", label: "Sunset Warm", colors: ["#FF6B6B", "#FCA311", "#E9C46A"], desc: "Vibrant energy, attention-grabbing" },
-]
+];
 
 const FONT_PAIRS = [
   { id: "modern", heading: "DM Sans", body: "Inter", label: "Modern Clean" },
   { id: "editorial", heading: "Fraunces", body: "DM Sans", label: "Editorial Serif" },
   { id: "sharp", heading: "Space Grotesk", body: "Work Sans", label: "Sharp Tech" },
   { id: "elegant", heading: "Playfair Display", body: "Lato", label: "Elegant Classic" },
-]
+];
 
+// ─── FORM SECTIONS CONFIG ───
 const SECTIONS = [
   { id: "basics", label: "Site Basics", icon: "Globe", color: C.mint },
   { id: "design", label: "Design & Style", icon: "Palette", color: C.gold },
   { id: "pages", label: "Pages & Structure", icon: "Layout", color: C.coral },
   { id: "features", label: "Abilities", icon: "Zap", color: C.mintLight },
   { id: "advanced", label: "Advanced", icon: "Settings", color: C.gray },
-]
+];
 
 // ─── MAIN STYLES ───
 const css = `
@@ -424,6 +447,7 @@ const css = `
     background: transparent; color: ${C.grayLight}; transition: all 0.2s;
   }
   .mode-btn.active { background: ${C.white}; color: ${C.charcoal}; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .mode-btn:hover:not(.active) { color: ${C.charcoal}; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 960px) {
@@ -438,26 +462,25 @@ const css = `
     .font-grid { grid-template-columns: 1fr; }
     .style-grid { grid-template-columns: 1fr; }
   }
-`
+`;
 
 // ─── HELPER: Section Icon Renderer ───
 function SectionIcon({ name, color }) {
-  const IconComp = Icon[name]
+  const IconComp = Icon[name];
   return (
     <div className="section-icon" style={{ background: `${color}15`, color }}>
       {IconComp ? <IconComp size={18} /> : null}
     </div>
-  )
+  );
 }
 
 // ─── MAIN COMPONENT ───
 export default function FormWizard() {
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  const { mode, setMode, answers, updateAnswers, getAnswer } = useBuild()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Form data - sync with BuildContext
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { answers: contextAnswers, setAnswer, setStage: setContextStage, mode, setMode, updateAnswers, getAnswer } = useBuild();
+  
+  // Form data - initialize from BuildContext
   const [form, setForm] = useState({
     siteName: getAnswer('identity') || "",
     domain: "",
@@ -465,9 +488,9 @@ export default function FormWizard() {
     businessType: "",
     description: getAnswer('purpose') || "",
     audience: getAnswer('audience') || "",
-    tones: getAnswer('tone') || [],
-    pages: getAnswer('pages') || ["Home", "About", "Contact"],
-    features: getAnswer('features') || ["Contact Form"],
+    tones: Array.isArray(getAnswer('tone')) ? getAnswer('tone') : (getAnswer('tone') ? [getAnswer('tone')] : []),
+    pages: Array.isArray(getAnswer('pages')) ? getAnswer('pages') : (getAnswer('pages') ? [getAnswer('pages')] : ["Home", "About", "Contact"]),
+    features: Array.isArray(getAnswer('features')) ? getAnswer('features') : (getAnswer('features') ? [getAnswer('features')] : ["Contact Form"]),
     stylePreset: getAnswer('visuals') || "nu-decide",
     fontPair: "editorial",
     primaryColor: C.mint,
@@ -476,156 +499,141 @@ export default function FormWizard() {
     seoDescription: "",
     customDomain: "",
     analytics: true,
-    coreMessage: "",
-  })
-
-  // Sync form changes to BuildContext (debounced)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      updateAnswers({
-        identity: form.siteName,
-        purpose: form.description,
-        audience: form.audience,
-        tone: form.tones,
-        pages: form.pages,
-        features: form.features,
-        visuals: form.stylePreset,
-      })
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [form.siteName, form.description, form.audience, form.tones, form.pages, form.features, form.stylePreset, updateAnswers])
+  });
 
   // UI state
-  const [openSections, setOpenSections] = useState(["basics"])
-  const [previewDevice, setPreviewDevice] = useState("desktop")
-  const [savedAt, setSavedAt] = useState(null)
-  const [completionPct, setCompletionPct] = useState(0)
-  const scrollRef = useRef(null)
+  const [openSections, setOpenSections] = useState(["basics"]);
+  const [previewDevice, setPreviewDevice] = useState("desktop");
+  const [savedAt, setSavedAt] = useState(null);
+  const [completionPct, setCompletionPct] = useState(0);
+  const scrollRef = useRef(null);
 
-  // Auto-save simulation
+  // Sync with BuildContext when it changes
+  useEffect(() => {
+    if (Object.keys(contextAnswers).length > 0) {
+      setForm(prev => ({
+        ...prev,
+        siteName: contextAnswers.identity || prev.siteName,
+        description: contextAnswers.purpose || prev.description,
+        audience: contextAnswers.audience || prev.audience,
+        tones: Array.isArray(contextAnswers.tone) ? contextAnswers.tone : (contextAnswers.tone ? [contextAnswers.tone] : prev.tones),
+        pages: Array.isArray(contextAnswers.pages) ? contextAnswers.pages : (contextAnswers.pages ? [contextAnswers.pages] : prev.pages),
+        features: Array.isArray(contextAnswers.features) ? contextAnswers.features : (contextAnswers.features ? [contextAnswers.features] : prev.features),
+        stylePreset: contextAnswers.visuals || prev.stylePreset,
+      }));
+    }
+  }, [contextAnswers]);
+
+  // Debounced sync to BuildContext
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSavedAt(new Date())
-      localStorage.setItem('formWizardDraft', JSON.stringify(form))
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [form])
+      // Map form fields to BuildContext answers
+      const updates = {};
+      if (form.siteName) updates.identity = form.siteName;
+      if (form.description) updates.purpose = form.description;
+      if (form.audience) updates.audience = form.audience;
+      if (form.tones.length > 0) updates.tone = form.tones;
+      if (form.pages.length > 0) updates.pages = form.pages;
+      if (form.features.length > 0) updates.features = form.features;
+      if (form.stylePreset) updates.visuals = form.stylePreset;
+      
+      updateAnswers(updates);
+      setSavedAt(new Date());
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [form, updateAnswers]);
 
   // Completion calculation
   useEffect(() => {
-    let filled = 0
-    let total = 10
-    if (form.siteName) filled++
-    if (form.industry) filled++
-    if (form.businessType) filled++
-    if (form.description) filled++
-    if (form.audience) filled++
-    if (form.tones.length > 0) filled++
-    if (form.pages.length > 0) filled++
-    if (form.features.length > 0) filled++
-    if (form.stylePreset) filled++
-    if (form.fontPair) filled++
-    setCompletionPct(Math.round((filled / total) * 100))
-  }, [form])
+    let filled = 0;
+    let total = 10;
+    if (form.siteName) filled++;
+    if (form.industry) filled++;
+    if (form.businessType) filled++;
+    if (form.description) filled++;
+    if (form.audience) filled++;
+    if (form.tones.length > 0) filled++;
+    if (form.pages.length > 0) filled++;
+    if (form.features.length > 0) filled++;
+    if (form.stylePreset) filled++;
+    if (form.fontPair) filled++;
+    setCompletionPct(Math.round((filled / total) * 100));
+  }, [form]);
 
-  // Load draft on mount
-  useEffect(() => {
-    const draft = localStorage.getItem('formWizardDraft')
-    if (draft) {
-      try {
-        setForm(JSON.parse(draft))
-      } catch (e) {
-        console.error('Error loading draft:', e)
-      }
-    }
-  }, [])
-
-  const updateForm = (key, value) => setForm((prev) => ({ ...prev, [key]: value }))
+  const updateForm = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const toggleSection = (id) => {
     setOpenSections((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    )
-  }
+    );
+  };
 
   const toggleArrayItem = (key, item) => {
-    const arr = form[key]
+    const arr = form[key];
     if (arr.includes(item)) {
-      updateForm(key, arr.filter((i) => i !== item))
+      updateForm(key, arr.filter((i) => i !== item));
     } else {
-      updateForm(key, [...arr, item])
+      updateForm(key, [...arr, item]);
     }
-  }
+  };
 
   const sectionCompletion = (id) => {
     switch (id) {
       case "basics":
-        return [form.siteName, form.industry, form.businessType, form.description].filter(Boolean).length
+        return [form.siteName, form.industry, form.businessType, form.description].filter(Boolean).length;
       case "design":
-        return [form.stylePreset, form.fontPair, form.tones.length > 0].filter(Boolean).length
+        return [form.stylePreset, form.fontPair, form.tones.length > 0].filter(Boolean).length;
       case "pages":
-        return form.pages.length > 0 ? 1 : 0
+        return form.pages.length > 0 ? 1 : 0;
       case "features":
-        return form.features.length > 0 ? 1 : 0
+        return form.features.length > 0 ? 1 : 0;
       case "advanced":
-        return [form.seoTitle, form.customDomain].filter(Boolean).length
+        return [form.seoTitle, form.customDomain].filter(Boolean).length;
       default:
-        return 0
+        return 0;
     }
-  }
+  };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true)
     try {
-      const email = user?.email || prompt('Please enter your email to receive your report:')
-      if (!email) {
-        alert('Email is required')
-        setIsSubmitting(false)
-        return
+      const submissionEmail = user?.email || prompt('Please enter your email to receive your report:');
+      if (!submissionEmail) {
+        alert('Email is required');
+        return;
       }
 
-      // Transform form data to match wizard_data structure
       const wizardData = {
-        businessName: form.siteName,
-        industry: form.industry,
-        businessType: form.businessType,
-        description: form.description,
-        audience: form.audience,
-        tone: form.tones,
-        colorDirections: [form.stylePreset],
-        pages: form.pages,
-        features: form.features,
-        fonts: { heading: form.fontPair, body: form.fontPair },
-        seoTitle: form.seoTitle,
-        seoDescription: form.seoDescription,
-        customDomain: form.customDomain,
-        analytics: form.analytics,
-        coreMessage: form.coreMessage,
-      }
+        businessName: form.siteName || "",
+        businessDescription: form.description || "",
+        audience: form.audience || "",
+        tone: form.tones || [],
+        desiredPages: form.pages || [],
+        colorDirections: form.stylePreset ? [form.stylePreset] : [],
+        formsNeeded: form.features || [],
+      };
 
       const submission = await createSubmission({
         source: 'user',
-        wizardType: 'full',
-        email,
-        wizardData,
-      })
+        wizardType: 'quick',
+        email: submissionEmail,
+        wizardData: wizardData
+      });
 
-      const report = await generateReport(submission.id)
-      navigate(`/wizard/success?submission=${submission.id}`)
+      await generateReport(submission.id);
+      navigate(`/wizard/success?submission=${submission.id}`);
     } catch (error) {
-      console.error('Error submitting form:', error)
-      alert('Error submitting. Please try again.')
-      setIsSubmitting(false)
+      console.error('Error submitting wizard:', error);
+      alert('Something went wrong. Please try again.');
     }
-  }
+  };
 
-  const selectedStyle = STYLE_PRESETS.find((s) => s.id === form.stylePreset) || STYLE_PRESETS[0]
-  const selectedFont = FONT_PAIRS.find((f) => f.id === form.fontPair) || FONT_PAIRS[0]
+  const selectedStyle = STYLE_PRESETS.find((s) => s.id === form.stylePreset) || STYLE_PRESETS[0];
+  const selectedFont = FONT_PAIRS.find((f) => f.id === form.fontPair) || FONT_PAIRS[0];
   const previewPrimary = form.stylePreset === "nu-decide" ? C.mint :
     form.stylePreset === "dark-bold" ? "#0F3460" :
     form.stylePreset === "warm-earth" ? "#D4A373" :
     form.stylePreset === "ocean" ? "#0077B6" :
-    form.stylePreset === "sunset" ? "#FCA311" : C.mint
+    form.stylePreset === "sunset" ? "#FCA311" : C.mint;
 
   return (
     <div style={{ minHeight: "100vh", background: C.cream }}>
@@ -640,7 +648,7 @@ export default function FormWizard() {
               <div className="form-logo">bye<span>NU</span></div>
               <div className="mode-switch">
                 <button 
-                  className={`mode-btn ${mode === 'wizard' ? 'active' : ''}`} 
+                  className={`mode-btn ${mode === 'wizard' ? 'active' : ''}`}
                   onClick={() => setMode('wizard')}
                 >
                   Wizard
@@ -651,7 +659,7 @@ export default function FormWizard() {
                   Form
                 </button>
                 <button 
-                  className={`mode-btn ${mode === 'chat' ? 'active' : ''}`} 
+                  className={`mode-btn ${mode === 'chat' ? 'active' : ''}`}
                   onClick={() => setMode('chat')}
                 >
                   Chat
@@ -799,9 +807,9 @@ export default function FormWizard() {
                           className={`pill ${form.tones.includes(t) ? "selected" : ""}`}
                           onClick={() => {
                             if (form.tones.includes(t)) {
-                              updateForm("tones", form.tones.filter((x) => x !== t))
+                              updateForm("tones", form.tones.filter((x) => x !== t));
                             } else if (form.tones.length < 3) {
-                              updateForm("tones", [...form.tones, t])
+                              updateForm("tones", [...form.tones, t]);
                             }
                           }}
                         >
@@ -1018,14 +1026,10 @@ export default function FormWizard() {
           {/* Footer */}
           <div className="form-footer">
             <div className="form-footer-left">
-              <button className="form-skip" onClick={() => navigate('/wizard-selector')}>Skip — let NU decide everything</button>
+              <button className="form-skip">Skip — let NU decide everything</button>
             </div>
-            <button className="form-submit" onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? 'Building...' : (
-                <>
-                  Build My Site <Icon.ArrowRight size={16} />
-                </>
-              )}
+            <button className="form-submit" onClick={handleSubmit}>
+              Build My Site <Icon.ArrowRight size={16} />
             </button>
           </div>
         </div>
@@ -1041,7 +1045,7 @@ export default function FormWizard() {
                   { id: "tablet", icon: "Tablet" },
                   { id: "phone", icon: "Phone" },
                 ].map((d) => {
-                  const DevIcon = Icon[d.icon]
+                  const DevIcon = Icon[d.icon];
                   return (
                     <button
                       key={d.id}
@@ -1050,7 +1054,7 @@ export default function FormWizard() {
                     >
                       {DevIcon && <DevIcon size={16} />}
                     </button>
-                  )
+                  );
                 })}
               </div>
               <button className="preview-device-btn" title="Refresh preview">
@@ -1164,5 +1168,5 @@ export default function FormWizard() {
         <span className="chat-assist-badge">1</span>
       </button>
     </div>
-  )
+  );
 }

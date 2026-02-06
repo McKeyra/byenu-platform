@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { colors, borderRadius, transitions } from '../../styles/design-system'
@@ -11,6 +11,12 @@ const css = `
     backdrop-filter: blur(12px);
     z-index: 100;
     border-bottom: 1px solid ${colors.border};
+    transition: ${transitions.default};
+  }
+  .marketing-nav.scrolled {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
   .nav-container {
     max-width: 1200px;
@@ -155,7 +161,16 @@ const css = `
 
 export default function MarketingNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const isActive = (path) => location.pathname === path
 
@@ -166,7 +181,7 @@ export default function MarketingNav() {
   return (
     <>
       <style>{css}</style>
-      <nav className="marketing-nav">
+      <nav className={`marketing-nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-container">
           <Link to="/" className="nav-logo">
             bye<span>NU</span>

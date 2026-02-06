@@ -25,7 +25,7 @@ export class StripeAdapter extends PaymentAdapter {
     }
   }
 
-  async createCheckoutSession({ plan, customerEmail, successUrl, cancelUrl }) {
+  async createCheckoutSession({ plan, customerEmail, successUrl, cancelUrl, metadata = {} }) {
     try {
       const priceId = PLAN_PRICES[plan]
       if (!priceId) {
@@ -56,6 +56,7 @@ export class StripeAdapter extends PaymentAdapter {
         cancel_url: cancelUrl,
         metadata: {
           plan,
+          ...metadata, // Include submission_id, user_id, etc.
         },
       })
 

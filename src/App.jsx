@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './lib/auth/AuthContext.jsx'
 import { BuildProvider } from './context/BuildContext.jsx'
@@ -9,10 +9,7 @@ import PricingPage from './pages/marketing/PricingPage.jsx'
 import ExamplesPage from './pages/marketing/ExamplesPage.jsx'
 import WizardSelector from './pages/WizardSelector.jsx'
 import QuickWizard from './pages/wizard/QuickWizard.jsx'
-import Wizard2 from './pages/wizard/Wizard2.jsx'
 import FullWizard from './pages/wizard/FullWizard.jsx'
-import FormWizard from './pages/wizard/FormWizard.jsx'
-import AIWizard from './pages/wizard/AIWizard.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import DashboardEnhanced from './pages/DashboardEnhanced.jsx'
 import Claim from './pages/Claim.jsx'
@@ -27,11 +24,20 @@ import DocPage from './pages/DocPage.jsx'
 import Support from './pages/Support.jsx'
 import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
+import NotFound from './pages/NotFound.jsx'
+import PageTransition from './components/PageTransition.jsx'
+import LoadingSkeleton from './components/LoadingSkeleton.jsx'
+
+// Lazy load build routes for code splitting
+const Wizard2 = lazy(() => import('./pages/wizard/Wizard2.jsx'))
+const FormWizard = lazy(() => import('./pages/wizard/FormWizard.jsx'))
+const AIWizard = lazy(() => import('./pages/wizard/AIWizard.jsx'))
 
 function App() {
   return (
     <AuthProvider>
-      <Routes>
+      <PageTransition>
+        <Routes>
         {/* Public */}
         <Route path="/" element={<Home />} />
         <Route path="/landing" element={<LandingPage />} />
@@ -44,30 +50,54 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         
-        {/* Build Routes (Full-screen, no nav/footer) - Shared State */}
+        {/* Build Routes (Full-screen, no nav/footer) - Shared State - Code Split */}
         <Route path="/build" element={
-          <BuildProvider>
-            <Wizard2 />
-          </BuildProvider>
+          <Suspense fallback={<LoadingSkeleton />}>
+            <BuildProvider>
+              <Wizard2 />
+            </BuildProvider>
+          </Suspense>
         } />
         <Route path="/build/chat" element={
-          <BuildProvider>
-            <AIWizard />
-          </BuildProvider>
+          <Suspense fallback={<LoadingSkeleton />}>
+            <BuildProvider>
+              <AIWizard />
+            </BuildProvider>
+          </Suspense>
         } />
         <Route path="/build/form" element={
-          <BuildProvider>
-            <FormWizard />
-          </BuildProvider>
+          <Suspense fallback={<LoadingSkeleton />}>
+            <BuildProvider>
+              <FormWizard />
+            </BuildProvider>
+          </Suspense>
         } />
         
         {/* Customer Routes */}
         <Route path="/wizard-selector" element={<WizardSelector />} />
-        <Route path="/wizard/quick" element={<Wizard2 />} />
+        <Route path="/wizard/quick" element={
+          <Suspense fallback={<LoadingSkeleton />}>
+            <BuildProvider>
+              <Wizard2 />
+            </BuildProvider>
+          </Suspense>
+        } />
         <Route path="/wizard/quick-old" element={<QuickWizard />} />
         <Route path="/wizard/full" element={<FullWizard />} />
-        <Route path="/wizard/form" element={<FormWizard />} />
-        <Route path="/wizard/ai" element={<AIWizard />} />
+        <Route path="/wizard/form" element={
+          <Suspense fallback={<LoadingSkeleton />}>
+            <BuildProvider>
+              <FormWizard />
+            </BuildProvider>
+          </Suspense>
+        } />
+        <Route path="/wizard/ai" element={
+          <Suspense fallback={<LoadingSkeleton />}>
+            <BuildProvider>
+              <AIWizard />
+            </BuildProvider>
+          </Suspense>
+        } />
         <Route path="/wizard/success" element={<WizardSuccess />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/enhanced" element={<DashboardEnhanced />} />
@@ -79,7 +109,11 @@ function App() {
         {/* Staff Routes */}
         <Route path="/command-center" element={<CommandCenter />} />
         <Route path="/command-center/pipeline" element={<Pipeline />} />
-      </Routes>
+        
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
+        </Routes>
+      </PageTransition>
     </AuthProvider>
   )
 }

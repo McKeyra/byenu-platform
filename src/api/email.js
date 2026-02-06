@@ -2,19 +2,91 @@ import { supabase } from '../lib/supabase.js'
 
 /**
  * Send report email to user
- * This will call a Supabase Edge Function or external email service
+ * Supports n8n webhook or direct email service (Resend/SendGrid)
  */
 export async function sendReportEmail(reportId, email, reportData) {
   try {
-    // For now, we'll use Supabase Edge Function
-    // In production, you'd set up Resend, SendGrid, or similar
-    
-    // Call Edge Function (if deployed)
-    // const { data, error } = await supabase.functions.invoke('send-report-email', {
-    //   body: { reportId, email, reportData }
-    // })
+    const n8nWebhookUrl = import.meta.env.VITE_N8N_EMAIL_WEBHOOK_URL
+    const resendApiKey = import.meta.env.VITE_RESEND_API_KEY
 
-    // For now, mark as sent in database
+    // Option 1: Send via n8n webhook (preferred)
+    if (n8nWebhookUrl) {
+      try {
+        const response = await fetch(n8nWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event: 'report_email',
+            report_id: reportId,
+            email,
+            report_data: reportData,
+            template: 'report',
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`n8n webhook failed: ${response.statusText}`)
+        }
+
+        // Mark as sent in database
+        const { data, error } = await supabase
+          .from('bye_nu.reports')
+          .update({
+            sent_at: new Date().toISOString(),
+          })
+          .eq('id', reportId)
+          .select()
+          .single()
+
+        if (error) throw error
+        console.log(`Report ${reportId} sent via n8n to ${email}`)
+        return data
+      } catch (webhookError) {
+        console.error('n8n webhook failed, trying direct email:', webhookError)
+        // Fall through to direct email
+      }
+    }
+
+    // Option 2: Send directly via Resend (if configured)
+    if (resendApiKey) {
+      const emailHtml = generateEmailTemplate(reportData)
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'byeNU <noreply@byenu.com>',
+          to: email,
+          subject: 'Your Personalized Website Proposal',
+          html: emailHtml,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(`Resend API error: ${errorData.message || response.statusText}`)
+      }
+
+      // Mark as sent in database
+      const { data, error } = await supabase
+        .from('bye_nu.reports')
+        .update({
+          sent_at: new Date().toISOString(),
+        })
+        .eq('id', reportId)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log(`Report ${reportId} sent via Resend to ${email}`)
+      return data
+    }
+
+    // Option 3: Fallback - just mark as sent (n8n will handle via database webhook)
     const { data, error } = await supabase
       .from('bye_nu.reports')
       .update({
@@ -25,24 +97,7 @@ export async function sendReportEmail(reportId, email, reportData) {
       .single()
 
     if (error) throw error
-
-    // TODO: Actually send email via email service
-    // Example with Resend:
-    // await fetch('https://api.resend.com/emails', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${import.meta.env.VITE_RESEND_API_KEY}`,
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     from: 'byeNU <noreply@byenu.com>',
-    //     to: email,
-    //     subject: 'Your Personalized Website Proposal',
-    //     html: generateEmailTemplate(reportData),
-    //   }),
-    // })
-
-    console.log(`Report ${reportId} marked as sent to ${email}`)
+    console.log(`Report ${reportId} marked as sent (n8n will handle via database webhook)`)
     return data
   } catch (error) {
     console.error('Error sending report email:', error)

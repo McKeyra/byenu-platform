@@ -1,6 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import MarketingLayout from '../../components/layout/MarketingLayout.jsx'
+import MetaTags from '../../components/MetaTags.jsx'
+import { initScrollReveals, staggerHeroEntry } from '../../utils/animations.js'
 import { colors, borderRadius, shadows, transitions } from '../../styles/design-system'
 import { Bolt, Check, Eye, Zap, ArrowRight, Sparkles, MessageSquare } from 'lucide-react'
 
@@ -331,8 +333,20 @@ const css = `
 `
 
 export default function LandingPage() {
+  useEffect(() => {
+    // Staggered hero entry
+    staggerHeroEntry('.hero-badge, .hero-headline, .hero-subtext, .hero-cta, .chat-mockup', 150)
+    
+    // Scroll reveals for feature cards
+    initScrollReveals()
+  }, [])
+
   return (
     <MarketingLayout>
+      <MetaTags
+        title="From conversation to live website"
+        description="Tell NU what you need. Your website builds itself while you watch. No coding. No design skills. No templates to fight with."
+      />
       <style>{css}</style>
       
       {/* Hero Section */}
@@ -415,7 +429,7 @@ export default function LandingPage() {
 
       {/* Features Grid */}
       <div className="features-grid">
-        <div className="feature-card" style={{ borderLeftColor: colors.mint }}>
+        <div className="feature-card" data-reveal style={{ borderLeftColor: colors.mint }}>
           <div className="feature-icon" style={{ background: `${colors.mint}15`, color: colors.mint }}>
             <Sparkles size={20} />
           </div>
@@ -425,7 +439,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="feature-card" style={{ borderLeftColor: colors.mintLight }}>
+        <div className="feature-card" data-reveal style={{ borderLeftColor: colors.mintLight }}>
           <div className="feature-icon" style={{ background: `${colors.mintLight}15`, color: colors.mintLight }}>
             <Zap size={20} />
           </div>
@@ -435,7 +449,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="feature-card" style={{ borderLeftColor: colors.coral }}>
+        <div className="feature-card" data-reveal style={{ borderLeftColor: colors.coral }}>
           <div className="feature-icon" style={{ background: `${colors.coral}15`, color: colors.coral }}>
             <MessageSquare size={20} />
           </div>
@@ -445,7 +459,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="feature-card" style={{ borderLeftColor: colors.gold }}>
+        <div className="feature-card" data-reveal style={{ borderLeftColor: colors.gold }}>
           <div className="feature-icon" style={{ background: `${colors.gold}15`, color: colors.gold }}>
             <Bolt size={20} />
           </div>
@@ -455,7 +469,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="feature-card" style={{ borderLeftColor: colors.mintLight }}>
+        <div className="feature-card" data-reveal style={{ borderLeftColor: colors.mintLight }}>
           <div className="feature-icon" style={{ background: `${colors.mintLight}15`, color: colors.mintLight }}>
             <Zap size={20} />
           </div>
@@ -465,7 +479,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="feature-card" style={{ borderLeftColor: colors.mint }}>
+        <div className="feature-card" data-reveal style={{ borderLeftColor: colors.mint }}>
           <div className="feature-icon" style={{ background: `${colors.mint}15`, color: colors.mint }}>
             <Eye size={20} />
           </div>
@@ -475,7 +489,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="feature-card" style={{ borderLeftColor: colors.coral }}>
+        <div className="feature-card" data-reveal style={{ borderLeftColor: colors.coral }}>
           <div className="feature-icon" style={{ background: `${colors.coral}15`, color: colors.coral }}>
             <Bolt size={20} />
           </div>

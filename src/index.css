@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus rings - mint color for accessibility */
+*:focus-visible {
+  outline: 2px solid #1A7A6D;
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

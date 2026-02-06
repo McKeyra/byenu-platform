@@ -152,52 +152,146 @@ async function createLayoutTemplate(membershipId, wizardData, report) {
 }
 
 /**
- * Generate site content sections
+ * Generate site content sections from wizard data
  */
 function generateSiteContent(wizardData, report) {
   const {
-    businessName,
-    goals,
-    audience,
-    primaryCta,
-    businessDocs,
-    industry,
+    businessName = '',
+    businessDescription = '',
+    audience = '',
+    tone = [],
+    desiredPages = [],
+    formsNeeded = [],
+    colorDirections = [],
   } = wizardData
+
+  // Use report breakdown if available
+  const breakdown = report?.breakdown_json || {}
+  const focus = breakdown.focus || businessDescription || 'Professional business presence'
 
   const content = {
     hero: {
       title: businessName || 'Welcome',
-      subtitle: goals && Array.isArray(goals) && goals.length > 0
-        ? `${goals[0]} for ${audience || 'our community'}`
-        : `Serving ${audience || 'our community'}`,
-      cta: primaryCta || 'Get Started',
+      subtitle: businessDescription || focus,
+      cta: 'Get Started',
+      description: audience ? `Serving ${audience}` : 'Your business, beautifully presented',
     },
   }
 
-  // Add about section
-  content.about = {
-    title: `About ${businessName || 'Us'}`,
-    content: businessDocs?.businessDescription
-      || `We are a ${industry || 'business'} dedicated to serving ${audience || 'our customers'}.`,
+  // Add about section (if About page is selected or always include)
+  if (desiredPages.includes('About') || desiredPages.length === 0) {
+    content.about = {
+      title: `About ${businessName || 'Us'}`,
+      content: businessDescription || `We are dedicated to serving ${audience || 'our customers'} with excellence and care.`,
+      mission: businessDescription || `Our mission is to provide exceptional service to ${audience || 'our community'}.`,
+    }
   }
 
-  // Add services section if goals include service-related items
-  if (goals && Array.isArray(goals) && (goals.includes('showcase') || goals.includes('sell'))) {
+  // Add services section (if Services page is selected)
+  if (desiredPages.includes('Services')) {
     content.services = {
       title: 'Our Services',
       subtitle: `What we offer to ${audience || 'you'}`,
       items: [
-        { title: 'Service 1', description: 'Description of your first service' },
-        { title: 'Service 2', description: 'Description of your second service' },
-        { title: 'Service 3', description: 'Description of your third service' },
+        { 
+          title: 'Service One', 
+          description: 'Professional service tailored to your needs',
+          icon: '⚡'
+        },
+        { 
+          title: 'Service Two', 
+          description: 'Expert solutions for your business',
+          icon: '🎯'
+        },
+        { 
+          title: 'Service Three', 
+          description: 'Comprehensive support and guidance',
+          icon: '✨'
+        },
       ],
     }
   }
 
-  // Add contact section
+  // Add pricing section (if Pricing page is selected)
+  if (desiredPages.includes('Pricing')) {
+    content.pricing = {
+      title: 'Pricing',
+      subtitle: 'Choose the plan that works for you',
+      plans: [
+        {
+          name: 'Starter',
+          price: '$30',
+          period: '/month',
+          features: ['Basic features', 'Email support', '1 website'],
+        },
+        {
+          name: 'Business',
+          price: '$50',
+          period: '/month',
+          features: ['All features', 'Priority support', '3 websites'],
+          featured: true,
+        },
+        {
+          name: 'Pro',
+          price: '$100',
+          period: '/month',
+          features: ['Everything', 'Dedicated support', '10 websites'],
+        },
+      ],
+    }
+  }
+
+  // Add contact section (always include)
   content.contact = {
     title: 'Get In Touch',
     subtitle: "We'd love to hear from you",
+    hasForm: formsNeeded.includes('Contact Form') || formsNeeded.length === 0,
+    email: '', // Will be populated from user account
+  }
+
+  // Add pages based on desiredPages
+  if (desiredPages.includes('Blog')) {
+    content.blog = {
+      title: 'Latest News',
+      subtitle: 'Stay updated with our latest posts',
+      posts: [], // Will be populated when blog is set up
+    }
+  }
+
+  if (desiredPages.includes('Portfolio')) {
+    content.portfolio = {
+      title: 'Our Work',
+      subtitle: 'See what we\'ve created',
+      items: [], // Will be populated with portfolio items
+    }
+  }
+
+  if (desiredPages.includes('Testimonials')) {
+    content.testimonials = {
+      title: 'What Our Clients Say',
+      items: [], // Will be populated with testimonials
+    }
+  }
+
+  if (desiredPages.includes('FAQ')) {
+    content.faq = {
+      title: 'Frequently Asked Questions',
+      items: [
+        { question: 'How does it work?', answer: 'We create your website based on your needs and preferences.' },
+        { question: 'Can I customize my site?', answer: 'Yes! You can edit everything after your site is generated.' },
+        { question: 'What support do you offer?', answer: 'We provide email support and comprehensive documentation.' },
+      ],
+    }
+  }
+
+  // Add metadata
+  content.meta = {
+    tone: Array.isArray(tone) ? tone : (tone ? [tone] : []),
+    colorScheme: Array.isArray(colorDirections) && colorDirections.length > 0 
+      ? colorDirections[0] 
+      : 'mint',
+    pages: desiredPages.length > 0 ? desiredPages : ['Home', 'About', 'Contact'],
+    features: formsNeeded.length > 0 ? formsNeeded : ['Contact Form'],
   }
 
   return content

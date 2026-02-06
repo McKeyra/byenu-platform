@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useBuild } from "../../context/BuildContext.jsx";
 import { createSubmission } from "../../api/submissions.js";
 import { generateReport } from "../../api/reports.js";
 import { useAuth } from "../../lib/auth/AuthContext.jsx";
-import { useBuild } from "../../context/BuildContext.jsx";
-import { C } from "../../theme/constants.js";
+
+// ─── PALETTE ───
+const C = {
+  mint: "#1A7A6D", mintLight: "#2EC4B6", mintGlow: "rgba(26,122,109,0.08)",
+  mintBorder: "rgba(26,122,109,0.20)", gold: "#D4A843", goldLight: "#F5E6C4",
+  goldGlow: "rgba(212,168,67,0.10)", coral: "#E8756D", coralGlow: "rgba(232,117,109,0.10)",
+  cream: "#FAFAF5", white: "#FFFFFF", charcoal: "#1A1A2E", dark: "#12121F",
+  gray: "#6B7280", grayLight: "#9CA3AF", grayPale: "#D1D5DB", border: "#E8E8E0",
+  success: "#22C55E", successGlow: "rgba(34,197,94,0.10)", bg: "#F6F6F1",
+};
 
 // ─── ICONS ───
 const I = {
@@ -152,7 +161,7 @@ const css = `
 .wz-left-ft-txt{font-size:10px;color:${C.grayLight};text-align:center;}
 
 /* ── CENTER ── */
-.wz-center{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden;}
+.wz-center{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden;background:${C.bg};}
 
 /* Top bar */
 .wz-top-bar{height:3px;background:${C.border};flex-shrink:0;}
@@ -171,9 +180,10 @@ const css = `
 .wz-hd-right{display:flex;gap:6px;}
 .wz-hd-btn{padding:6px 12px;border:1px solid ${C.border};border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:${C.white};color:${C.gray};display:flex;align-items:center;gap:5px;transition:all 0.2s;}
 .wz-hd-btn:hover{border-color:${C.mint};color:${C.mint};}
+.wz-hd-btn.active{background:${C.mintGlow};color:${C.mint};border-color:${C.mint};}
 
 /* Main Area */
-.wz-main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px;overflow-y:auto;}
+.wz-main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px;overflow-y:auto;min-height:0;}
 .wz-card{width:100%;max-width:580px;animation:cardIn 0.45s cubic-bezier(0.16,1,0.3,1);}
 @keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 
@@ -183,11 +193,14 @@ const css = `
 .wz-q-sub{font-size:14px;color:${C.grayLight};line-height:1.5;margin-bottom:28px;}
 
 /* Text Input */
-.wz-input-wrap{position:relative;}
-.wz-input{width:100%;padding:16px 20px;border:2px solid ${C.border};border-radius:14px;font-size:16px;font-family:inherit;color:${C.charcoal};background:${C.cream};outline:none;transition:all 0.25s;}
+.wz-input-wrap{position:relative;display:flex;gap:8px;align-items:center;}
+.wz-input{flex:1;padding:16px 20px;border:2px solid ${C.border};border-radius:14px;font-size:16px;font-family:inherit;color:${C.charcoal};background:${C.cream};outline:none;transition:all 0.25s;}
 .wz-input:focus{border-color:${C.mint};background:${C.white};box-shadow:0 0 0 4px ${C.mintGlow};}
 .wz-input::placeholder{color:${C.grayPale};}
-.wz-input-hint{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:10px;color:${C.grayPale};font-family:'JetBrains Mono',monospace;}
+.wz-input-hint{position:absolute;right:70px;top:50%;transform:translateY(-50%);font-size:10px;color:${C.grayPale};font-family:'JetBrains Mono',monospace;pointer-events:none;}
+.wz-input-continue{flex-shrink:0;width:48px;height:48px;border-radius:50%;background:${C.mint};color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s;padding:0;}
+.wz-input-continue:hover:not(:disabled){background:${C.gold};color:${C.charcoal};transform:translateY(-1px);box-shadow:0 6px 20px ${C.goldGlow};}
+.wz-input-continue:disabled{opacity:0.35;cursor:not-allowed;}
 
 /* Suggestions */
 .wz-sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
@@ -196,14 +209,15 @@ const css = `
 .wz-sugg-chip svg{color:${C.grayLight};}
 
 /* Pills */
-.wz-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.wz-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
 .wz-pill{padding:10px 18px;border:2px solid ${C.border};border-radius:22px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;background:${C.white};color:${C.charcoal};transition:all 0.2s;user-select:none;}
 .wz-pill:hover{border-color:${C.mint};background:${C.mintGlow};}
 .wz-pill.sel{border-color:${C.mint};background:${C.mint};color:white;transform:scale(1.02);}
-.wz-pill-count{font-size:12px;color:${C.mint};font-weight:600;margin-top:10px;}
+.wz-pill-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;}
+.wz-pill-count{font-size:12px;color:${C.mint};font-weight:600;}
 
 /* Visual Cards */
-.wz-vcards{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.wz-vcards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
 .wz-vcard{padding:20px;border:2px solid ${C.border};border-radius:16px;cursor:pointer;transition:all 0.25s;background:${C.white};position:relative;overflow:hidden;}
 .wz-vcard:hover{border-color:${C.mintBorder};transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.04);}
 .wz-vcard.sel{border-color:${C.mint};background:${C.mintGlow};box-shadow:0 0 0 3px ${C.mintGlow};}
@@ -216,6 +230,7 @@ const css = `
 .wz-vcard p{font-size:12px;color:${C.grayLight};line-height:1.4;}
 .wz-vcard-check{position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;background:${C.mint};color:white;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0.6);transition:all 0.2s;}
 .wz-vcard.sel .wz-vcard-check{opacity:1;transform:scale(1);}
+.wz-cards-footer{display:flex;justify-content:flex-end;margin-top:20px;}
 
 /* Review */
 .wz-review{background:${C.white};border:1px solid ${C.border};border-radius:18px;overflow:hidden;}
@@ -231,7 +246,7 @@ const css = `
 .wz-review-row:hover .wz-review-edit{opacity:1;}
 
 /* Footer */
-.wz-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:${C.white};border-top:1px solid ${C.border};flex-shrink:0;}
+.wz-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:${C.white};border-top:1px solid ${C.border};flex-shrink:0;min-height:60px;}
 .wz-back{display:flex;align-items:center;gap:5px;background:none;border:none;color:${C.gray};font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;padding:8px 0;transition:color 0.2s;}
 .wz-back:hover{color:${C.charcoal};}
 .wz-next{display:flex;align-items:center;gap:8px;background:${C.mint};color:white;padding:13px 28px;border-radius:12px;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:inherit;transition:all 0.3s;}
@@ -281,6 +296,19 @@ const css = `
 .bld-step.active .bld-dot{background:${C.gold};box-shadow:0 0 0 4px ${C.goldGlow};}
 .bld-step.done .bld-dot{background:${C.success};}
 
+/* ── MODE SWITCH ── */
+.mode-switch {
+  display: flex; gap: 2px; background: ${C.cream}; padding: 3px;
+  border-radius: 8px; border: 1px solid ${C.border};
+}
+.mode-btn {
+  padding: 5px 12px; border: none; border-radius: 6px; font-size: 12px;
+  font-weight: 500; cursor: pointer; font-family: inherit;
+  background: transparent; color: ${C.grayLight}; transition: all 0.2s;
+}
+.mode-btn.active { background: ${C.white}; color: ${C.charcoal}; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.mode-btn:hover:not(.active) { color: ${C.charcoal}; }
+
 /* ── RESPONSIVE ── */
 @media(max-width:1100px){.wz-right{display:none;}}
 @media(max-width:800px){.wz-left{display:none;}.wz-q{font-size:26px;}}
@@ -290,7 +318,7 @@ const css = `
 export default function Wizard2() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { answers: contextAnswers, setAnswer, setStage: setContextStage, mode, setMode, progress } = useBuild();
+  const { answers: contextAnswers, setAnswer, setStage: setContextStage, mode, setMode, progress: contextProgress } = useBuild();
   const [stage, setStage] = useState(0);
   const [answers, setAnswers] = useState(contextAnswers || {});
   const [text, setText] = useState("");
@@ -300,23 +328,33 @@ export default function Wizard2() {
   const [buildStep, setBuildStep] = useState(0);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Sync local answers with context
-  useEffect(() => {
-    if (Object.keys(contextAnswers).length > 0) {
-      setAnswers(contextAnswers)
-      // Restore current stage from context if available
-      const firstUnanswered = STAGES.findIndex(s => s.id !== 'review' && !contextAnswers[s.id])
-      if (firstUnanswered >= 0) {
-        setStage(firstUnanswered)
-      }
-    }
-  }, [contextAnswers, setAnswer, setContextStage])
-  
   const inputRef = useRef(null);
 
+  // Sync with BuildContext
+  useEffect(() => {
+    if (Object.keys(contextAnswers).length > 0) {
+      setAnswers(contextAnswers);
+      const firstUnanswered = STAGES.findIndex(s => s.id !== 'review' && !contextAnswers[s.id]);
+      if (firstUnanswered >= 0) {
+        setStage(firstUnanswered);
+      }
+    }
+  }, [contextAnswers]);
+
+  // Load current stage values from answers
+  useEffect(() => {
+    const currentAnswer = answers[STAGES[stage]?.id];
+    if (STAGES[stage]?.type === "text" && currentAnswer) {
+      setText(currentAnswer);
+    } else if (STAGES[stage]?.type === "pills" && Array.isArray(currentAnswer)) {
+      setPillSel(currentAnswer);
+    } else if (STAGES[stage]?.type === "cards" && currentAnswer) {
+      setCardSel(currentAnswer);
+    }
+  }, [stage, answers]);
+
   const s = STAGES[stage];
-  const localProgress = Math.round((Object.keys(answers).length / (STAGES.length - 1)) * 100);
+  const progress = Math.round((Object.keys(answers).length / (STAGES.length - 1)) * 100);
 
   useEffect(() => {
     if (inputRef.current && s.type === "text") inputRef.current.focus();
@@ -331,55 +369,6 @@ export default function Wizard2() {
     }
   }, [building, buildStep]);
 
-  // Map answers to wizard data format
-  const mapAnswersToWizardData = (answers) => {
-    return {
-      businessName: answers.identity || "",
-      businessDescription: answers.purpose || "",
-      audience: answers.audience || "",
-      tone: Array.isArray(answers.tone) ? answers.tone : answers.tone ? [answers.tone] : [],
-      desiredPages: Array.isArray(answers.pages) ? answers.pages : answers.pages ? [answers.pages] : [],
-      colorDirections: answers.visuals ? [answers.visuals] : [],
-      formsNeeded: Array.isArray(answers.features) ? answers.features : answers.features ? [answers.features] : [],
-    };
-  };
-
-  const handleFinalSubmit = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-
-    try {
-      const submissionEmail = user?.email || email || prompt('Please enter your email to receive your report:');
-      if (!submissionEmail) {
-        alert('Email is required');
-        setIsSubmitting(false);
-        setBuilding(false);
-        return;
-      }
-
-      const wizardData = mapAnswersToWizardData(answers);
-      
-      // Create submission
-      const submission = await createSubmission({
-        source: 'user',
-        wizardType: 'quick',
-        email: submissionEmail,
-        wizardData: wizardData
-      });
-
-      // Generate report
-      await generateReport(submission.id);
-
-      // Navigate to success page
-      navigate(`/wizard/success?submission=${submission.id}`);
-    } catch (error) {
-      console.error('Error submitting wizard:', error);
-      setIsSubmitting(false);
-      setBuilding(false);
-      alert('Something went wrong. Please try again.');
-    }
-  };
-
   const canGo = () => {
     if (s.type === "text") return text.trim().length > 0;
     if (s.type === "pills") return pillSel.length > 0;
@@ -390,7 +379,6 @@ export default function Wizard2() {
 
   const goNext = () => {
     if (s.type === "review") {
-      // Ask for email if not logged in
       if (!user?.email && !email) {
         const emailInput = prompt('Please enter your email to receive your report:');
         if (!emailInput) return;
@@ -420,6 +408,7 @@ export default function Wizard2() {
     if (prev.type === "pills") setPillSel(prevAns || []);
     if (prev.type === "cards") setCardSel(prevAns || null);
     setStage((v) => v - 1);
+    setContextStage(stage - 1);
   };
 
   const jumpTo = (idx) => {
@@ -430,6 +419,7 @@ export default function Wizard2() {
       if (st.type === "pills") setPillSel(a || []);
       if (st.type === "cards") setCardSel(a || null);
       setStage(idx);
+      setContextStage(idx);
     }
   };
 
@@ -439,6 +429,48 @@ export default function Wizard2() {
       prev.length < (s.maxSelect || 3) ? [...prev, opt] : prev
     );
   };
+
+  const handleFinalSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      const submissionEmail = user?.email || email || prompt('Please enter your email to receive your report:');
+      if (!submissionEmail) {
+        alert('Email is required');
+        setIsSubmitting(false);
+        setBuilding(false);
+        return;
+      }
+
+      const wizardData = {
+        businessName: answers.identity || "",
+        businessDescription: answers.purpose || "",
+        audience: answers.audience || "",
+        tone: Array.isArray(answers.tone) ? answers.tone : answers.tone ? [answers.tone] : [],
+        desiredPages: Array.isArray(answers.pages) ? answers.pages : answers.pages ? [answers.pages] : [],
+        colorDirections: answers.visuals ? [answers.visuals] : [],
+        formsNeeded: Array.isArray(answers.features) ? answers.features : answers.features ? [answers.features] : [],
+      };
+
+      const submission = await createSubmission({
+        source: 'user',
+        wizardType: 'quick',
+        email: submissionEmail,
+        wizardData: wizardData
+      });
+
+      await generateReport(submission.id);
+      navigate(`/wizard/success?submission=${submission.id}`);
+    } catch (error) {
+      console.error('Error submitting wizard:', error);
+      setIsSubmitting(false);
+      setBuilding(false);
+      alert('Something went wrong. Please try again.');
+    }
+  };
+
+  const getIcon = (name) => { const Comp = I[name]; return Comp ? <Comp /> : null; };
 
   return (
     <div>
@@ -480,7 +512,7 @@ export default function Wizard2() {
             })}
           </div>
           <div className="wz-left-ft">
-            <div className="wz-prog-wrap"><div className="wz-prog-fill" style={{ width: `${localProgress}%` }} /></div>
+            <div className="wz-prog-wrap"><div className="wz-prog-fill" style={{ width: `${progress}%` }} /></div>
             <div className="wz-left-ft-txt">{Object.keys(answers).length} of {STAGES.length - 1} complete</div>
           </div>
         </div>
@@ -507,24 +539,22 @@ export default function Wizard2() {
               </div>
             </div>
             <div className="wz-hd-right">
-              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <div className="mode-switch">
                 <button 
-                  className={`wz-hd-btn ${mode === 'wizard' ? 'active' : ''}`}
-                  style={mode === 'wizard' ? { background: C.mintGlow, color: C.mint, borderColor: C.mint } : {}}
+                  className={`mode-btn ${mode === 'wizard' ? 'active' : ''}`}
+                  onClick={() => setMode('wizard')}
                 >
                   Wizard
                 </button>
                 <button 
-                  className={`wz-hd-btn ${mode === 'chat' ? 'active' : ''}`}
+                  className={`mode-btn ${mode === 'chat' ? 'active' : ''}`}
                   onClick={() => setMode('chat')}
-                  style={mode === 'chat' ? { background: C.mintGlow, color: C.mint, borderColor: C.mint } : {}}
                 >
                   <I.Chat /> Chat
                 </button>
                 <button 
-                  className={`wz-hd-btn ${mode === 'form' ? 'active' : ''}`}
+                  className={`mode-btn ${mode === 'form' ? 'active' : ''}`}
                   onClick={() => setMode('form')}
-                  style={mode === 'form' ? { background: C.mintGlow, color: C.mint, borderColor: C.mint } : {}}
                 >
                   Form
                 </button>
@@ -555,6 +585,14 @@ export default function Wizard2() {
                       onKeyDown={(e) => { if (e.key === "Enter" && text.trim()) goNext(); }}
                     />
                     <span className="wz-input-hint">↵ enter</span>
+                    <button 
+                      className="wz-input-continue" 
+                      disabled={!text.trim()} 
+                      onClick={goNext}
+                      aria-label="Continue"
+                    >
+                      <I.ArrowR />
+                    </button>
                   </div>
                   {s.suggestions && (
                     <div className="wz-sugg">
@@ -578,23 +616,35 @@ export default function Wizard2() {
                       </button>
                     ))}
                   </div>
-                  <div className="wz-pill-count">{pillSel.length}{s.maxSelect < 12 ? ` / ${s.maxSelect}` : ""} selected</div>
+                  <div className="wz-pill-footer">
+                    <div className="wz-pill-count">{pillSel.length}{s.maxSelect < 12 ? ` / ${s.maxSelect}` : ""} selected</div>
+                    <button className="wz-next" disabled={pillSel.length === 0} onClick={goNext}>
+                      Continue <I.ArrowR />
+                    </button>
+                  </div>
                 </div>
               )}
 
               {/* VISUAL CARDS */}
               {s.type === "cards" && (
-                <div className="wz-vcards">
-                  {s.options.map((opt) => (
-                    <div key={opt.id} className={`wz-vcard ${cardSel === opt.id ? "sel" : ""}`} onClick={() => setCardSel(opt.id)}>
-                      <div className="wz-vcard-swatches">
-                        {opt.colors.map((c, i) => <div key={i} className="wz-vcard-swatch" style={{ background: c }} />)}
+                <div>
+                  <div className="wz-vcards">
+                    {s.options.map((opt) => (
+                      <div key={opt.id} className={`wz-vcard ${cardSel === opt.id ? "sel" : ""}`} onClick={() => setCardSel(opt.id)}>
+                        <div className="wz-vcard-swatches">
+                          {opt.colors.map((c, i) => <div key={i} className="wz-vcard-swatch" style={{ background: c }} />)}
+                        </div>
+                        <div className="wz-vcard-check"><I.Check s={12} /></div>
+                        <h4>{opt.label}</h4>
+                        <p>{opt.desc}</p>
                       </div>
-                      <div className="wz-vcard-check"><I.Check s={12} /></div>
-                      <h4>{opt.label}</h4>
-                      <p>{opt.desc}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <div className="wz-cards-footer">
+                    <button className="wz-next" disabled={!cardSel} onClick={goNext}>
+                      Continue <I.ArrowR />
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -629,11 +679,21 @@ export default function Wizard2() {
               {stage > 0 ? (
                 <button className="wz-back" onClick={goBack}><I.ArrowL /> Back</button>
               ) : <div />}
-              <button className="wz-skip">Skip — let NU decide</button>
+              {s.type !== "text" && s.type !== "pills" && s.type !== "cards" && (
+                <button className="wz-skip">Skip — let NU decide</button>
+              )}
             </div>
-            <button className="wz-next" disabled={!canGo()} onClick={goNext}>
-              {s.type === "review" ? (<><I.Zap /> Build My Site</>) : (<>Continue <I.ArrowR /></>)}
-            </button>
+            {/* Only show footer button for review stage */}
+            {s.type === "review" && (
+              <button className="wz-next" disabled={!canGo()} onClick={goNext}>
+                <I.Zap /> Build My Site
+              </button>
+            )}
+            {s.type !== "text" && s.type !== "pills" && s.type !== "cards" && s.type !== "review" && (
+              <button className="wz-next" disabled={!canGo()} onClick={goNext}>
+                Continue <I.ArrowR />
+              </button>
+            )}
           </div>
         </div>
 

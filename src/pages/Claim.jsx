@@ -37,6 +37,10 @@ export default function Claim() {
         customerEmail: user.email,
         successUrl: `${window.location.origin}/claim/success?submission=${submissionId}&plan=${selectedPlan}`,
         cancelUrl: `${window.location.origin}/claim?submission=${submissionId}`,
+        metadata: {
+          submission_id: submissionId,
+          user_id: user.id,
+        },
       })
 
       // Redirect to Stripe checkout
