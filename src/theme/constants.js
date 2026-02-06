@@ -22,6 +22,9 @@ export const C = {
   successGlow: "rgba(34,197,94,0.10)",
   error: "#EF4444",
   errorGlow: "rgba(239,68,68,0.08)",
+  bg: "#F6F6F1",
+  dark: "#12121F",
+  borderDark: "#2A2A3E",
 }
 
 export const globalStyles = `

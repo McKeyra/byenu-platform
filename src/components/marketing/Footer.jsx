@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Twitter, Linkedin, Youtube, Github, Shield, Lock, Globe, ChevronDown } from 'lucide-react'
 
@@ -16,12 +17,12 @@ export default function Footer() {
       { label: 'Examples', href: '#' },
     ],
     Resources: [
-      { label: 'Documentation', href: '#' },
+      { label: 'Docs', href: '/docs' },
       { label: 'Video Tutorials', href: '#' },
       { label: 'Blog', href: '#' },
       { label: 'Case Studies', href: '#' },
-      { label: 'API Docs', href: '#' },
-      { label: 'Support', href: '#' },
+      { label: 'API Docs', href: '/docs/api' },
+      { label: 'Support', href: '/support' },
       { label: 'Status Page', href: '#' },
       { label: 'Community', href: '#' },
     ],
@@ -29,8 +30,8 @@ export default function Footer() {
       { label: 'About Us', href: '#' },
       { label: 'Careers', href: '#', badge: 'hiring' },
       { label: 'Contact', href: '#' },
-      { label: 'Privacy Policy', href: '#' },
-      { label: 'Terms of Service', href: '#' },
+      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Terms of Service', href: '/terms' },
       { label: 'Security', href: '#' },
       { label: 'Accessibility', href: '#' },
     ],
@@ -108,18 +109,33 @@ export default function Footer() {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-white/60 hover:text-white hover:underline transition-all text-sm flex items-center gap-2 group"
-                    >
-                      {link.label}
-                      {link.badge === 'hiring' && (
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8BC9A8] opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8BC9A8]"></span>
-                        </span>
-                      )}
-                    </a>
+                    {link.href.startsWith('/') ? (
+                      <Link
+                        to={link.href}
+                        className="text-white/60 hover:text-white hover:underline transition-all text-sm flex items-center gap-2 group"
+                      >
+                        {link.label}
+                        {link.badge === 'hiring' && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8BC9A8] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8BC9A8]"></span>
+                          </span>
+                        )}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-white/60 hover:text-white hover:underline transition-all text-sm flex items-center gap-2 group"
+                      >
+                        {link.label}
+                        {link.badge === 'hiring' && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8BC9A8] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8BC9A8]"></span>
+                          </span>
+                        )}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -174,18 +190,33 @@ export default function Footer() {
                 <ul className="pb-4 space-y-3">
                   {links.map((link) => (
                     <li key={link.label}>
-                      <a
-                        href={link.href}
-                        className="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-2"
-                      >
-                        {link.label}
-                        {link.badge === 'hiring' && (
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8BC9A8] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8BC9A8]"></span>
-                          </span>
-                        )}
-                      </a>
+                      {link.href.startsWith('/') ? (
+                        <Link
+                          to={link.href}
+                          className="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-2"
+                        >
+                          {link.label}
+                          {link.badge === 'hiring' && (
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8BC9A8] opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8BC9A8]"></span>
+                            </span>
+                          )}
+                        </Link>
+                      ) : (
+                        <a
+                          href={link.href}
+                          className="text-white/60 hover:text-white transition-colors text-sm flex items-center gap-2"
+                        >
+                          {link.label}
+                          {link.badge === 'hiring' && (
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8BC9A8] opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#8BC9A8]"></span>
+                            </span>
+                          )}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { createSubmission } from '../../api/submissions.js'
 import { generateReport } from '../../api/reports.js'
 import { useAuth } from '../../lib/auth/AuthContext.jsx'
+import { useBuild } from '../../context/BuildContext.jsx'
 import PageLayout from '../../components/layout/PageLayout.jsx'
 import { C } from '../../theme/constants.js'
 
@@ -453,20 +454,21 @@ function SectionIcon({ name, color }) {
 export default function FormWizard() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { mode, setMode, answers, updateAnswers, getAnswer } = useBuild()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Form data
+  // Form data - sync with BuildContext
   const [form, setForm] = useState({
-    siteName: "",
+    siteName: getAnswer('identity') || "",
     domain: "",
     industry: "",
     businessType: "",
-    description: "",
-    audience: "",
-    tones: [],
-    pages: ["Home", "About", "Contact"],
-    features: ["Contact Form"],
-    stylePreset: "nu-decide",
+    description: getAnswer('purpose') || "",
+    audience: getAnswer('audience') || "",
+    tones: getAnswer('tone') || [],
+    pages: getAnswer('pages') || ["Home", "About", "Contact"],
+    features: getAnswer('features') || ["Contact Form"],
+    stylePreset: getAnswer('visuals') || "nu-decide",
     fontPair: "editorial",
     primaryColor: C.mint,
     logoUploaded: false,
@@ -476,6 +478,22 @@ export default function FormWizard() {
     analytics: true,
     coreMessage: "",
   })
+
+  // Sync form changes to BuildContext (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateAnswers({
+        identity: form.siteName,
+        purpose: form.description,
+        audience: form.audience,
+        tone: form.tones,
+        pages: form.pages,
+        features: form.features,
+        visuals: form.stylePreset,
+      })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [form.siteName, form.description, form.audience, form.tones, form.pages, form.features, form.stylePreset, updateAnswers])
 
   // UI state
   const [openSections, setOpenSections] = useState(["basics"])
@@ -621,9 +639,23 @@ export default function FormWizard() {
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <div className="form-logo">bye<span>NU</span></div>
               <div className="mode-switch">
-                <button className="mode-btn" onClick={() => navigate('/wizard/full')}>Wizard</button>
-                <button className="mode-btn active">Form</button>
-                <button className="mode-btn" onClick={() => navigate('/wizard/ai')}>Chat</button>
+                <button 
+                  className={`mode-btn ${mode === 'wizard' ? 'active' : ''}`} 
+                  onClick={() => setMode('wizard')}
+                >
+                  Wizard
+                </button>
+                <button 
+                  className={`mode-btn ${mode === 'form' ? 'active' : ''}`}
+                >
+                  Form
+                </button>
+                <button 
+                  className={`mode-btn ${mode === 'chat' ? 'active' : ''}`} 
+                  onClick={() => setMode('chat')}
+                >
+                  Chat
+                </button>
               </div>
             </div>
             <div className="form-header-meta">
@@ -1127,7 +1159,7 @@ export default function FormWizard() {
       </div>
 
       {/* Chat Assist Button */}
-      <button className="chat-assist-btn" onClick={() => navigate('/wizard/ai')} title="Switch to Chat mode">
+      <button className="chat-assist-btn" onClick={() => setMode('chat')} title="Switch to Chat mode">
         <Icon.Chat size={20} />
         <span className="chat-assist-badge">1</span>
       </button>

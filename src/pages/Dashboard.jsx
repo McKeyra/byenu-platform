@@ -6,7 +6,11 @@ import { getReport } from '../api/reports.js'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout.jsx'
 import { C } from '../theme/constants.js'
-import { FileText, Globe, CreditCard, Settings, Mail, AlertCircle } from 'lucide-react'
+import { 
+  FileText, Globe, CreditCard, Settings, Mail, AlertCircle,
+  MessageSquare, Layers, BarChart3, Eye, Brain, Sparkles,
+  Users, TrendingUp, Send, Loader2, Zap
+} from 'lucide-react'
 
 const dashboardStyles = `
   .dashboard-container {
@@ -227,6 +231,7 @@ export default function Dashboard() {
             {[
               { id: 'overview', label: 'Overview', icon: FileText },
               { id: 'report', label: 'Report', icon: FileText },
+              { id: 'chat', label: 'AI Chat', icon: MessageSquare },
               { id: 'website', label: 'My Website', icon: Globe },
               { id: 'billing', label: 'Billing', icon: CreditCard },
               { id: 'settings', label: 'Settings', icon: Settings },
@@ -241,6 +246,34 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
+
+          {/* Chat Tab */}
+          {activeTab === 'chat' && (
+            <div className="dashboard-card">
+              <h2 className="dashboard-section-title">AI Assistant</h2>
+              <p style={{ color: C.gray, marginBottom: '24px' }}>
+                Chat with your AI assistant to get help with your website, report, or next steps.
+              </p>
+              <div style={{ 
+                background: C.cream, 
+                border: `1px solid ${C.border}`, 
+                borderRadius: '16px', 
+                padding: '24px',
+                minHeight: '300px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center'
+              }}>
+                <MessageSquare size={48} style={{ color: C.gray, opacity: 0.3, marginBottom: '16px' }} />
+                <p style={{ color: C.gray, fontSize: '14px' }}>Chat feature coming soon</p>
+                <p style={{ color: C.grayLight, fontSize: '12px', marginTop: '8px' }}>
+                  This will integrate with the AI assistant for conversational support
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Report View */}
           {activeTab === 'report' && report && (

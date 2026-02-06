@@ -17,6 +17,7 @@ export default function Nav() {
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
         <a href="#examples">Examples</a>
+        <Link to="/docs">Support</Link>
         <button className="nav-cta" onClick={handleStartBuilding}>
           Start Building →
         </button>
