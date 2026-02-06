@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase.js'
+import { generatePageStructure } from './component-library.js'
 
 /**
  * Generate site from submission/report after claim
@@ -16,11 +17,14 @@ export async function generateSite(submissionId, membershipId) {
   const wizardData = submission.wizard_data
   const report = submission.reports?.[0]
 
+  // Generate component structure using component library
+  const pageStructure = generatePageStructure(wizardData)
+
   // Step 1: Create CustomerProfile
   const profile = await createCustomerProfile(membershipId, wizardData)
 
-  // Step 2: Create LayoutTemplate
-  const template = await createLayoutTemplate(membershipId, wizardData, report)
+  // Step 2: Create LayoutTemplate (now includes component structure)
+  const template = await createLayoutTemplate(membershipId, wizardData, report, pageStructure)
 
   // Step 3: Update membership
   await supabase
@@ -42,6 +46,7 @@ export async function generateSite(submissionId, membershipId) {
   return {
     profileId: profile.id,
     templateId: template.id,
+    pageStructure,
   }
 }
 
@@ -91,8 +96,9 @@ async function createCustomerProfile(membershipId, wizardData) {
 
 /**
  * Create LayoutTemplate with site content
+ * Now includes component structure from component library
  */
-async function createLayoutTemplate(membershipId, wizardData, report) {
+async function createLayoutTemplate(membershipId, wizardData, report, pageStructure = null) {
   const {
     businessName,
     goals,
@@ -143,6 +149,7 @@ async function createLayoutTemplate(membershipId, wizardData, report) {
       typography: typography,
       site_content: siteContent,
       form_schemas: formSchemas,
+      component_structure: pageStructure || [], // Store component structure for rendering
     })
     .select()
     .single()

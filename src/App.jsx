@@ -27,6 +27,8 @@ import Terms from './pages/Terms.jsx'
 import NotFound from './pages/NotFound.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import LoadingSkeleton from './components/LoadingSkeleton.jsx'
+import ConversationalWizard from './pages/wizard/ConversationalWizard.jsx'
+import WizardReview from './pages/wizard/WizardReview.jsx'
 
 // Lazy load build routes for code splitting
 const Wizard2 = lazy(() => import('./pages/wizard/Wizard2.jsx'))
@@ -75,6 +77,8 @@ function App() {
         
         {/* Customer Routes */}
         <Route path="/wizard-selector" element={<WizardSelector />} />
+        <Route path="/wizard/conversational" element={<ConversationalWizard />} />
+        <Route path="/wizard/review" element={<WizardReview />} />
         <Route path="/wizard/quick" element={
           <Suspense fallback={<LoadingSkeleton />}>
             <BuildProvider>
