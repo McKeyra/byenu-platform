@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './lib/auth/AuthContext.jsx'
 import { BuildProvider } from './context/BuildContext.jsx'
 import Home from './pages/Home.jsx'
@@ -29,6 +29,8 @@ import PageTransition from './components/PageTransition.jsx'
 import LoadingSkeleton from './components/LoadingSkeleton.jsx'
 import ConversationalWizard from './pages/wizard/ConversationalWizard.jsx'
 import WizardReview from './pages/wizard/WizardReview.jsx'
+import ByenuDashboard from './pages/dashboard/byenu/ByenuDashboard.jsx'
+import EnuwDashboard from './pages/dashboard/enuw/EnuwDashboard.jsx'
 
 // Lazy load build routes for code splitting
 const Wizard2 = lazy(() => import('./pages/wizard/Wizard2.jsx'))
@@ -103,14 +105,25 @@ function App() {
           </Suspense>
         } />
         <Route path="/wizard/success" element={<WizardSuccess />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        
+        {/* byeNU Client Dashboard (22C-CORP) */}
+        <Route path="/dashboard/*" element={<ByenuDashboard />} />
         <Route path="/dashboard/enhanced" element={<DashboardEnhanced />} />
+        
+        {/* ENUW Key Master Dashboard (22C-SPORT) */}
+        <Route path="/key/*" element={<EnuwDashboard />} />
+        
+        {/* Redirect /key to /key/dashboard */}
+        <Route path="/key" element={<Navigate to="/key/dashboard" replace />} />
+        
+        {/* Legacy Routes */}
+        <Route path="/dashboard-old" element={<Dashboard />} />
         <Route path="/claim" element={<Claim />} />
         <Route path="/claim/success" element={<ClaimSuccess />} />
         <Route path="/builder" element={<Builder />} />
         <Route path="/site" element={<Site />} />
         
-        {/* Staff Routes */}
+        {/* Staff Routes (Legacy) */}
         <Route path="/command-center" element={<CommandCenter />} />
         <Route path="/command-center/pipeline" element={<Pipeline />} />
         
