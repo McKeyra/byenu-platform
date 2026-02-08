@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getSite } from '../api/sites.js'
 import { supabase } from '../lib/supabase.js'
 import GlassCard from '../components/ui-custom/GlassCard.jsx'
+import PageRenderer from '../components/renderer/PageRenderer.jsx'
 import { ArrowLeft, Monitor, Tablet, Smartphone, Save, Loader2, Eye, Pencil, X } from 'lucide-react'
 import { cn } from '../utils/index.js'
 import { Input } from '../components/ui/input.jsx'
@@ -19,6 +20,7 @@ export default function Builder() {
   const [isSaving, setIsSaving] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [content, setContent] = useState(null)
+  const [componentStructure, setComponentStructure] = useState(null)
 
   const { data: siteData, isLoading, refetch } = useQuery({
     queryKey: ['site', membershipId],
@@ -27,8 +29,17 @@ export default function Builder() {
   })
 
   useEffect(() => {
-    if (siteData?.layout_templates?.[0]?.site_content) {
-      setContent(siteData.layout_templates[0].site_content)
+    if (siteData?.layout_templates?.[0]) {
+      const template = siteData.layout_templates[0]
+      if (template.site_content) {
+        setContent(template.site_content)
+      }
+      // Extract component structure
+      const structure = 
+        template.component_structure ||
+        siteData.component_structure ||
+        null
+      setComponentStructure(structure)
     }
   }, [siteData])
 
@@ -268,10 +279,19 @@ export default function Builder() {
               devicePreview === 'mobile' && 'max-w-sm'
             )}
           >
-            {/* Site Preview */}
-            {content && (
+            {/* Site Preview using PageRenderer */}
+            {componentStructure && componentStructure.length > 0 ? (
+              <PageRenderer
+                structure={componentStructure}
+                siteContent={content}
+                onComponentUpdate={(type, variant, updatedProps) => {
+                  // Handle component updates if needed
+                  console.log('Component updated:', type, variant, updatedProps)
+                }}
+              />
+            ) : content ? (
+              // Fallback to content-based rendering if no component structure
               <div className="p-8">
-                {/* Hero Section */}
                 {content.hero && (
                   <section className="text-center py-16 mb-16 border-b border-slate-200">
                     <h1 className="text-5xl font-bold text-slate-900 mb-4">
@@ -285,8 +305,6 @@ export default function Builder() {
                     </button>
                   </section>
                 )}
-
-                {/* About Section */}
                 {content.about && (
                   <section className="py-16 mb-16 border-b border-slate-200">
                     <h2 className="text-3xl font-bold text-slate-900 mb-6">
@@ -297,8 +315,6 @@ export default function Builder() {
                     </p>
                   </section>
                 )}
-
-                {/* Services Section */}
                 {content.services && (
                   <section className="py-16 mb-16 border-b border-slate-200">
                     <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">
@@ -321,8 +337,6 @@ export default function Builder() {
                     </div>
                   </section>
                 )}
-
-                {/* Contact Section */}
                 {content.contact && (
                   <section className="py-16">
                     <h2 className="text-3xl font-bold text-slate-900 mb-4 text-center">
@@ -346,6 +360,10 @@ export default function Builder() {
                     </div>
                   </section>
                 )}
+              </div>
+            ) : (
+              <div className="p-16 text-center text-slate-500">
+                <p>No site content available. Please generate your site first.</p>
               </div>
             )}
           </div>

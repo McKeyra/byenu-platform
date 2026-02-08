@@ -149,7 +149,7 @@ async function createLayoutTemplate(membershipId, wizardData, report, pageStruct
       typography: typography,
       site_content: siteContent,
       form_schemas: formSchemas,
-      component_structure: pageStructure || [], // Store component structure for rendering
+      component_structure: pageStructure || null // Store component structure for rendering
     })
     .select()
     .single()
